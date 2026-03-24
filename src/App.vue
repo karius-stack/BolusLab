@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import { ZONES } from "./constants";
+import { ZONES } from './constants';
+import ZoneBadge from './components/ZoneBadge.vue';
 
 const currentView = ref('home')
 </script>
@@ -34,7 +35,7 @@ const currentView = ref('home')
   <div>
     <h2>Soner:</h2>
     <div v-for="zone in ZONES" :key="zone.id" style="border: 1px solid white; padding: 10px; margin: 5px;">
-      {{ zone.label }} - her er tiden: {{ zone.range }}
+      <ZoneBadge :zone="zone" />
     </div>
   </div>
 </template>
