@@ -1,9 +1,11 @@
 <script setup>
 import { ref } from 'vue'
-import { ZONES } from './constants';
+import { TEST_TYPES, ZONES } from './constants';
 import ZoneBadge from './components/ZoneBadge.vue';
+import Chip from './components/Chip.vue'
 
 const currentView = ref('home')
+const filterType =ref('all')
 </script>
 
 <template>
@@ -32,10 +34,22 @@ const currentView = ref('home')
     <div v-else-if="currentView == 'analyze'">Analyse view går her</div>
     <div v-else>Innstillinger view går her</div>
   </main>
-  <div>
-    <h2>Soner:</h2>
-    <div v-for="zone in ZONES" :key="zone.id" style="border: 1px solid white; padding: 10px; margin: 5px;">
-      <ZoneBadge :zone="zone" />
+
+  <div style="margin-top: 20px;">
+    <h3>Filter:</h3>
+    <div>
+      <Chip
+        label="Alle"
+        :active="filterType === 'all'"
+        @toggle="filterType = filterType === 'all' ? '' : 'all'"
+      />
+      <Chip
+        v-for="type in TEST_TYPES"
+        :key="type"
+        :label="type"
+        :active="filterType === type"
+        @toggle="filterType = filterType === type ? '' : type"
+      />
     </div>
   </div>
 </template>
