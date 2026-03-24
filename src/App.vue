@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import { ZONES } from "./constants";
 
 const currentView = ref('home')
 </script>
@@ -30,6 +31,12 @@ const currentView = ref('home')
     <div v-else-if="currentView == 'analyze'">Analyse view går her</div>
     <div v-else>Innstillinger view går her</div>
   </main>
+  <div>
+    <h2>Soner:</h2>
+    <div v-for="zone in ZONES" :key="zone.id" style="border: 1px solid white; padding: 10px; margin: 5px;">
+      {{ zone.label }} - her er tiden: {{ zone.range }}
+    </div>
+  </div>
 </template>
 
 <style scoped>
