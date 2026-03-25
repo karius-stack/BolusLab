@@ -1,22 +1,9 @@
 <script setup>
-import { ref } from 'vue';
-import { entries, settings } from '../state';
+import { settings } from '../state';
 import { ZONES } from '../constants';
 import SectionCard from '../components/SectionCard.vue';
 import Field from '../components/Field.vue';
-
-const confirmClear = ref(false)
-
-function clearData() {
-    entries.splice(0, entries.length)
-    confirmClear.value = false
-}
-
-const thresholdRows = [
-    { color: '#34d399', text: 'God' },
-    { color: '#fbbf24', text: 'Akseptabel' },
-    { color: '#f87171', text: 'Bør gjentas' },
-]
+import DataCard from '../components/DataCard.vue';
 </script>
 
 <template>
@@ -88,19 +75,9 @@ const thresholdRows = [
         </SectionCard>
 
         <!-- Data -->
-        <SectionCard title="Data">
-            <p class="data-info">
-                Data lagres lokalt i nettleseren (localStorage) og forblir på denne enheten.
-            </p>
-            <button v-if="!confirmClear" class="delete-btn" @click="confirmClear = true">
-                Slett alle testdata
-            </button>
-            <div v-else class="confirm-box">
-                <span class="confirm-text">Er du sikker? Dette kan ikke angres.</span>
-                <button class="confirm-yes" @click="clearData">Ja, slett alt</button>
-                <button class="confirm-cancel" @click="confirmClear = false">Avbryt</button>
-            </div>
-        </SectionCard>
+        <DataCard />
+
+        <div style="height: 40px"></div>
     </div>
 </template>
 
@@ -157,7 +134,6 @@ select {
     color: var(--color-text-muted);
 }
 
-/* ─── THRESHOLD PREVIEW ─── */
 .threshold-preview {
     padding: 12px 14px;
     background: var(--color-bg-primary);
@@ -196,69 +172,5 @@ select {
 
 .threshold-label {
     font-size: 12px;
-}
-
-/* ─── DATA ─── */
-.data-info {
-    font-size: 13px;
-    color: var(--color-text-muted);
-    margin: 0;
-}
-
-.delete-btn {
-    align-self: flex-start;
-    background: transparent;
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #f87171;
-    padding: 9px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: var(--font-ui);
-    transition: all var(--transition-base);
-}
-
-.delete-btn:hover {
-    background: rgba(239, 68, 68, 0.08);
-}
-
-.confirm-box {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-    background: rgba(239, 68, 68, 0.08);
-    border: 1px solid rgba(239, 68, 68, 0.25);
-    border-radius: 10px;
-    padding: 14px 16px;
-}
-
-.confirm-text {
-    font-size: 13px;
-    color: #fca5a5;
-}
-
-.confirm-yes {
-    background: #ef4444;
-    border: none;
-    color: white;
-    padding: 7px 16px;
-    border-radius: 7px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    font-family: var(--font-ui);
-}
-
-.confirm-cancel {
-    background: transparent;
-    border: 1px solid var(--color-border);
-    color: #94a3b8;
-    padding: 7px 14px;
-    border-radius: 7px;
-    cursor: pointer;
-    font-size: 13px;
-    font-family: var(--font-ui);
 }
 </style>
