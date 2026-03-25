@@ -17,12 +17,17 @@ const props = defineProps({
     height: {
     type: Number,
     default: 36
+    },
+    zeroLine: {
+    type: Boolean,
+    default: false
     }
 })
 
-// Finn min/max-verdier i dataene
-const minVal = computed(() => Math.min(...props.values))
-const maxVal = computed(() => Math.max(...props.values))
+// Finn min/max-verdier i dataene (inkluder 0 hvis zeroLine er aktivt)
+const allVals = computed(() => props.zeroLine ? [...props.values, 0] : props.values)
+const minVal = computed(() => Math.min(...allVals.value))
+const maxVal = computed(() => Math.max(...allVals.value))
 const range = computed(() => maxVal.value - minVal.value || 1)
 
 // Konverterer dataverdi til SVG y-koordinat (piksler)
@@ -38,6 +43,13 @@ const points = computed(() =>
 
 <template>
     <svg :width="width" :height="height" style="display: block; overflow: visible;">
+        <!-- Nullinje -->
+        <line
+            v-if="zeroLine"
+            :x1="0" :x2="width"
+            :y1="toY(0)" :y2="toY(0)"
+            stroke="#334155" stroke-width="1" stroke-dasharray="3,3"
+        />
         <!-- Tegn linjen som kobbler alle punkt -->
         <polyline
         :points="points"
