@@ -36,8 +36,6 @@ The application interface is in Norwegian, as it was built for personal use.
 
 ## Screenshots
 
-> Take screenshots of the application and place them in `docs/screenshots/`. Update the links below.
-
 | Home | Log | Analyze |
 |------|-----|---------|
 | ![Home](docs/screenshots/home.png) | ![Log](docs/screenshots/log.png) | ![Analyze](docs/screenshots/analyze.png) |
@@ -59,7 +57,6 @@ The application interface is in Norwegian, as it was built for personal use.
 - **Configurable thresholds** — set your own green/yellow/red boundaries and target BG in Settings
 - **Export / Import** — back up all data as JSON, restore from file
 - **Local persistence** — all data saves automatically to `localStorage`
-- **Animated background** — scrolling BG curve and grid background shared across all pages
 
 ---
 
