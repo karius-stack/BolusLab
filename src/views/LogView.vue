@@ -5,6 +5,7 @@ import { entries, settings } from '../state';
 import { TEST_TYPES, ZONES } from '../constants';
 import SectionCard from '../components/SectionCard.vue';
 import Field from '../components/Field.vue';
+import Sparkline from '../components/Sparkline.vue';
 
 const form = reactive({
     date: new Date().toISOString().slice(0, 10),
@@ -110,7 +111,9 @@ const filteredEntries = computed(() => {
                 {{ type === 'all' ? 'Alle' : type }}
             </button>
         </div>
+
     </div>
+    <Sparkline :values="[1, 2, 1.5, 3, 2, 1]" color="#34d399" />
 </template>
 
 <style scoped>
