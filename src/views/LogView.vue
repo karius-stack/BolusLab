@@ -2,6 +2,8 @@
 import { reactive } from 'vue';
 import { entries, settings } from '../state';
 import { TEST_TYPES, ZONES } from '../constants';
+import SectionCard from '../components/SectionCard.vue';
+import Field from '../components/Field.vue';
 
 const form = reactive({
     date: new Date().toISOString().slice(0, 10),
@@ -35,53 +37,47 @@ function handleSubmit() {
 <template>
     <div>
         <h2>Ny test</h2>
+        <SectionCard title="Ny test">
+            <form @submit.prevent="handleSubmit">
+                <Field label="Test type">
+                    <select v-model="form.testType">
+                        <option v-for="type in TEST_TYPES" :key="type" :value="type">
+                            {{type}}
+                        </option>
+                    </select>
+                </Field>
+    
+                <Field label="Dato">
+                    <input v-model="form.date" type="date" />
+                </Field>    
 
-        <form @submit.prevent="handleSubmit">
-            <div>
-                <label>Test type:</label>
-                <select v-model="form.testType">
-                    <option v-for="type in TEST_TYPES" :key="type" :value="type">
-                        {{type}}
-                    </option>
-                </select>
-            </div>
+                <Field label="Sone">
+                    <select v-model="form.zone">
+                        <option v-for="zone in ZONES" :key="zone.id" :value="zone.id">
+                            {{ zone.label }}
+                        </option>
+                    </select>
+                </Field>
 
-            <div>
-                <label>Dato:</label>
-                <input v-model="form.date" type="date" />
-            </div>
+                <Field label="Start BG:">
+                    <input v-model="form.startBG" type="number" placeholder="5.0" />
+                </Field>
 
-            <div>
-                <label>Sone:</label>
-                <select v-model="form.zone">
-                    <option v-for="zone in ZONES" :key="zone.id" :value="zone.id">
-                        {{ zone.label }}
-                    </option>
-                </select>
-            </div>
+                <Field label="Slutt BG:">
+                    <input v-model="form.endBG" type="number" placeholder="5.5" />
+                </Field>
 
-            <div>
-                <label>Start BG:</label>
-                <input v-model="form.startBG" type="number" placeholder="5.0" />
-            </div>
+                <Field label="Varighet (min)">
+                    <input v-model="form.duration" type="number" />                    
+                </Field>
 
-            <div>
-                <label>Slutt BG:</label>
-                <input v-model="form.endBG" type="number" placeholder="5.5" />
-            </div>
-
-            <div>
-                <label>Varighet (min):</label>
-                <input v-model="form.duration" type="number" />
-            </div>
-
-            <div>
-                <label>Notater:</label>
-                <textarea v-model="form.notes" placeholder="Ekstra info..."></textarea>
-            </div>
-
-            <button type="submit">Legg til test</button>
-        </form>
+                <Field label="Notater">
+                    <textarea v-model="form.notes" placeholder="Ekstra info..."></textarea>
+                </Field>
+    
+                <button type="submit">Legg til test</button>
+            </form>
+        </SectionCard>
 
         <h3>Loggede tester ({{ entries.length }})</h3>
         <div v-if="entries.length === 0">Ingen tester ennå</div>
