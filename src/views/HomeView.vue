@@ -3,6 +3,7 @@ import { computed, ref, onMounted } from 'vue';
 import { entries } from '../state';
 import { ZONES, TEST_TYPES } from '../constants';
 import ZoneBadge from '../components/ZoneBadge.vue';
+import BgChart from '../components/BgChart.vue';
 
 const total = computed(() => entries.length)
 const recent = computed(() => entries.slice(0, 3))
@@ -51,31 +52,6 @@ onMounted(() => {
     }
 })
 
-// BG background curve (seamless loop — starts and ends at y=110, ~5.5 mmol/L)
-// Scale: y=20 ≈ 10 mmol/L (high), y=110 ≈ 5.5 mmol/L (target), y=155 ≈ 4 mmol/L (low)
-const bgPath = `M 0,110 C 60,108 100,88 150,62 C 190,42 210,32 248,36
-  C 278,40 298,56 332,74 C 362,88 388,100 425,108
-  C 455,114 480,118 515,120 C 545,122 568,118 605,110
-  C 635,104 665,100 705,98 C 735,97 762,100 802,108
-  C 832,115 862,120 904,118 C 934,115 962,106 1004,93
-  C 1038,82 1062,73 1098,76 C 1128,79 1152,90 1188,100
-  C 1218,108 1248,113 1285,112 C 1315,111 1345,110 1400,110`
-
-const bgArea = `M 0,200 L 0,110 C 60,108 100,88 150,62 C 190,42 210,32 248,36
-  C 278,40 298,56 332,74 C 362,88 388,100 425,108
-  C 455,114 480,118 515,120 C 545,122 568,118 605,110
-  C 635,104 665,100 705,98 C 735,97 762,100 802,108
-  C 832,115 862,120 904,118 C 934,115 962,106 1004,93
-  C 1038,82 1062,73 1098,76 C 1128,79 1152,90 1188,100
-  C 1218,108 1248,113 1285,112 C 1315,111 1345,110 1400,110 L 1400,200 Z`
-
-// Hero chart: scale 4–10 mmol/L over y=10–110 (100px)
-// yPos(v) = 10 + (10-v)/6*100
-// 10→10, 9→27, 8→43, 7→60, 5.5→85, 4→110
-const heroBgPath = `M 0,60 C 30,54 55,30 82,18 C 102,8 122,11 148,28
-  C 168,40 188,54 218,64 C 252,74 282,80 322,83
-  C 358,84 378,85 400,85`
-
 const infoCards = [
     { title: 'Basaltest', color: '#60a5fa', icon: '〰', desc: 'Tester om basaldosen holder blodsukkeret stabilt. Mål: Δ BG ≤ 0.5 mmol/L over 2–4 timer uten mat.' },
     { title: 'ISF', color: '#c084fc', icon: '↓', desc: 'Insulinsensitivitetsfaktor — hvor mye BG synker per enhet insulin. Grunnlag for korreksjonsdosering.' },
@@ -91,30 +67,6 @@ const steps = [
 
 <template>
     <div class="home-wrap">
-
-        <!-- ─── Bakgrunn ─── -->
-        <div class="bg-layer" aria-hidden="true">
-            <div class="bg-grid"></div>
-            <div class="bg-curve-wrap">
-                <div class="bg-curve-scroll">
-                    <svg v-for="n in 2" :key="n" class="bg-svg"
-                        viewBox="0 0 1400 200" preserveAspectRatio="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient :id="`g${n}`" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#34d399" stop-opacity="0.07"/>
-                                <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
-                            </linearGradient>
-                        </defs>
-                        <rect x="0" y="62" width="1400" height="76" fill="rgba(52,211,153,0.025)"/>
-                        <path :d="bgArea" :fill="`url(#g${n})`"/>
-                        <path :d="bgPath" fill="none" stroke="#34d399" stroke-width="1.5"
-                            stroke-linejoin="round" stroke-linecap="round" opacity="0.18"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="bg-vignette"></div>
-        </div>
 
         <!-- ─── Innhold ─── -->
         <div class="home-content">
@@ -155,42 +107,7 @@ const steps = [
                 </div>
 
                 <!-- BG chart -->
-                <div class="hero-chart">
-                    <div class="chart-area">
-                        <!-- viewBox 0 0 400 120 — scale: 4 mmol/L=y110, 10 mmol/L=y10 -->
-                        <svg viewBox="0 0 400 120" preserveAspectRatio="none"
-                            xmlns="http://www.w3.org/2000/svg" class="chart-svg">
-                            <defs>
-                                <linearGradient id="heroGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#34d399" stop-opacity="0.18"/>
-                                    <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
-                                </linearGradient>
-                            </defs>
-                            <!-- Grid lines: 10 mmol/L (top), 5.5 target (dashed), 4 mmol/L (bottom) -->
-                            <line x1="0" x2="400" y1="10" y2="10" stroke="#f87171" stroke-width="0.6" opacity="0.25"/>
-                            <line x1="0" x2="400" y1="85" y2="85" stroke="#34d399" stroke-width="0.6" stroke-dasharray="5,4" opacity="0.45"/>
-                            <line x1="0" x2="400" y1="110" y2="110" stroke="#fbbf24" stroke-width="0.6" opacity="0.2"/>
-                            <!-- Target band 4.5–7.5 mmol/L → y=52 to y=102 -->
-                            <rect x="0" y="52" width="400" height="50" fill="rgba(52,211,153,0.055)"/>
-                            <!-- Y-axis labels -->
-                            <text x="3" y="9" font-size="7" fill="#f87171" opacity="0.55" dominant-baseline="hanging">10</text>
-                            <text x="3" y="110" font-size="7" fill="#fbbf24" opacity="0.5">4</text>
-                            <!-- Area fill -->
-                            <path d="M 0,120 L 0,60 C 30,54 55,30 82,18 C 102,8 122,11 148,28 C 168,40 188,54 218,64 C 252,74 282,80 322,83 C 358,84 378,85 400,85 L 400,120 Z"
-                                fill="url(#heroGrad)"/>
-                            <!-- BG line -->
-                            <path :d="heroBgPath" fill="none" stroke="#34d399" stroke-width="2"
-                                stroke-linejoin="round" stroke-linecap="round"/>
-                            <!-- Current value dot at 5.5 mmol/L (y=85) -->
-                            <circle cx="400" cy="85" r="4" fill="#34d399"/>
-                            <circle cx="400" cy="85" r="8" fill="#34d399" opacity="0.15"/>
-                        </svg>
-                        <div class="chart-value">
-                            <span class="chart-val-num">5.5</span>
-                            <span class="chart-val-unit">mmol/L</span>
-                        </div>
-                    </div>
-                </div>
+                <BgChart />
             </div>
 
             <!-- DIVIDER -->
@@ -232,67 +149,6 @@ const steps = [
 </template>
 
 <style scoped>
-.home-wrap {
-    position: relative;
-}
-
-.home-content {
-    position: relative;
-    z-index: 1;
-}
-
-/* ─── BAKGRUNN ─── */
-.bg-layer {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-}
-
-.bg-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(56, 189, 248, 0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(56, 189, 248, 0.045) 1px, transparent 1px);
-    background-size: 44px 44px;
-}
-
-/* Radial fade — transparent centre, fades to page bg at edges */
-.bg-vignette {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 75% 70% at 50% 35%, transparent 20%, #0f172a 80%);
-}
-
-.bg-curve-wrap {
-    position: absolute;
-    bottom: 12%;
-    left: 0;
-    right: 0;
-    height: 200px;
-    overflow: hidden;
-}
-
-.bg-curve-scroll {
-    display: flex;
-    width: 200%;
-    height: 100%;
-    animation: scroll-bg 30s linear infinite;
-}
-
-.bg-svg {
-    width: 50%;
-    height: 100%;
-    flex-shrink: 0;
-}
-
-@keyframes scroll-bg {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-}
-
 /* ─── HERO ─── */
 .hero {
     display: grid;
@@ -403,47 +259,6 @@ const steps = [
     color: #475569;
     margin-top: 1px;
     line-height: 1.5;
-}
-
-/* BG Chart */
-.hero-chart {
-    background: rgba(15, 23, 42, 0.7);
-    border: 1px solid #1e293b;
-    border-radius: 16px;
-    padding: 20px;
-    backdrop-filter: blur(8px);
-}
-
-.chart-area {
-    flex: 1;
-    position: relative;
-}
-
-.chart-svg {
-    width: 100%;
-    height: 140px;
-    display: block;
-}
-
-.chart-value {
-    position: absolute;
-    top: 8px;
-    right: 0;
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
-}
-
-.chart-val-num {
-    font-size: 18px;
-    font-weight: 700;
-    color: #34d399;
-    font-family: var(--font-mono);
-}
-
-.chart-val-unit {
-    font-size: 11px;
-    color: #475569;
 }
 
 /* ─── DIVIDER ─── */

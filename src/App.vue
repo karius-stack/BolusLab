@@ -1,19 +1,16 @@
 <script setup>
 import { ref } from 'vue'
-import { TEST_TYPES, ZONES } from './constants';
-import { entries, settings } from './state';
-import ZoneBadge from './components/ZoneBadge.vue';
-import Chip from './components/Chip.vue'
 import HomeView from './views/HomeView.vue';
 import LogView from './views/LogView.vue';
 import AnalyzeView from './views/AnalyzeView.vue';
 import SettingsView from './views/SettingsView.vue';
+import BgLayer from './components/BgLayer.vue';
 
 const currentView = ref('home')
-const filterType =ref('all')
 </script>
 
 <template>
+  <BgLayer />
   <header class="app-header">
     <!-- Logo + Title -->
     <div class="header-left">
@@ -127,6 +124,8 @@ const filterType =ref('all')
 }
 
 .main-content {
+  position: relative;
+  z-index: 1;
   max-width: 1100px;
   margin: 0 auto;
   padding: 28px 20px 0;
