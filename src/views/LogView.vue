@@ -367,7 +367,7 @@ function handleDelete(id) {
               v-if="entry.testType === 'ISF' && calcISF(entry) !== null"
               class="isf-stat-badge"
             >
-              ISF {{ calcISF(entry).toFixed(1) }}
+              {{ calcISF(entry).toFixed(1) }} mmol/L/E
             </div>
           </div>
 
