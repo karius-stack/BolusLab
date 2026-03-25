@@ -1,5 +1,6 @@
 <script setup>
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
+import { computed } from 'vue';
 import { entries, settings } from '../state';
 import { TEST_TYPES, ZONES } from '../constants';
 import SectionCard from '../components/SectionCard.vue';
@@ -32,11 +33,20 @@ function handleSubmit() {
     form.duration = String(settings.defaultDuration)
     form.notes = ''
 }
+
+// State
+const filterType = ref('all')
+
+const filteredEntries = computed(() => {
+    // Vue sporer: filterType.value og entries
+    // Hvis NOEN av disse endrer, re-kjør formelen
+    if (filterType.value === 'all') return entries // Alle
+    return entries.filter(e => e.testType === filterType.value) // Filtrerte
+})
 </script>
 
 <template>
     <div>
-        <h2>Ny test</h2>
         <SectionCard title="Ny test">
             <form @submit.prevent="handleSubmit">
                 <Field label="Test type">
@@ -79,14 +89,26 @@ function handleSubmit() {
             </form>
         </SectionCard>
 
-        <h3>Loggede tester ({{ entries.length }})</h3>
-        <div v-if="entries.length === 0">Ingen tester ennå</div>
+        <h3>Loggede tester ({{ filteredEntries.length }})</h3>
+        <div v-if="filteredEntries.length === 0">Ingen tester ennå</div>
         <div v-else>
-            <div v-for="entry in entries" :key="entry.id" style="border: 1px solid #334155; padding: 10px; margin: 5px;">
+            <!-- Viser avledet data (oppdateres automatisk) -->
+            <div v-for="entry in filteredEntries" :key="entry.id" style="border: 1px solid #334155; padding: 10px; margin: 5px;">
                 <p><strong>{{ entry.testType }}</strong> - {{ entry.date }}</p>
                 <p>{{ entry.startBG }} → {{ entry.endBG }} mmol/L</p>
                 <p v-if="entry.notes"><em>{{ entry.notes }}</em></p>
             </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            <button
+                v-for="type in ['all', ...TEST_TYPES]"
+                :key="type"
+                @click="filterType = type"
+                :style="{ fontWeight: filterType === type ? 'bold' : 'normal' }"
+                >
+                {{ type === 'all' ? 'Alle' : type }}
+            </button>
         </div>
     </div>
 </template>
