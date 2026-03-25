@@ -28,6 +28,10 @@ function deltaColor(d) {
     if (Math.abs(d) <= 1.2) return '#fbbf24'
     return '#f87171'
 }
+function calcISF(e) {
+    const s = parseFloat(e.startBG), en = parseFloat(e.endBG), dose = parseFloat(e.dose)
+    return (!isNaN(s) && !isNaN(en) && !isNaN(dose) && dose > 0) ? (s - en) / dose : null
+}
 
 // Counter animation
 const animatedTotal = ref(0)
@@ -139,6 +143,8 @@ const steps = [
                         <span class="act-type" :style="{ color: typeLabelColor(e.testType) }">{{ e.testType }}</span>
                         <span class="act-delta" v-if="deltaBG(e) !== null && e.testType !== 'ISF'"
                             :style="{ color: deltaColor(deltaBG(e)) }">{{ deltaBGStr(e) }}</span>
+                        <span class="act-delta" v-if="e.testType === 'ISF' && calcISF(e) !== null"
+                            style="color: #c084fc">{{ calcISF(e).toFixed(1) }} mmol/L/E</span>
                     </div>
                 </div>
             </div>
