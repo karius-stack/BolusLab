@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { entries } from '../state';
 import { ZONES, TEST_TYPES } from '../constants';
 import ZoneBadge from '../components/ZoneBadge.vue';
@@ -31,25 +31,62 @@ function deltaColor(d) {
     return '#f87171'
 }
 
+// ─── Counter animation ───
+const animatedTotal = ref(0)
+const animatedByType = ref(Object.fromEntries(TEST_TYPES.map(t => [t, 0])))
+
+function animateCount(from, to, set, duration = 900) {
+    const start = performance.now()
+    const tick = (now) => {
+        const p = Math.min((now - start) / duration, 1)
+        const eased = 1 - (1 - p) ** 3
+        set(Math.round(from + (to - from) * eased))
+        if (p < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+}
+
+onMounted(() => {
+    if (total.value > 0) {
+        setTimeout(() => {
+            animateCount(0, total.value, v => { animatedTotal.value = v })
+            TEST_TYPES.forEach(t => animateCount(0, byType.value[t], v => { animatedByType.value[t] = v }))
+        }, 150)
+    }
+})
+
+// ─── BG curve path (seamlessly looping) ───
+// viewBox 0 0 1400 200 — starts and ends at y=100 for seamless loop
+const bgPath = `M 0,100
+  C 80,99 160,98 220,95
+  C 280,92 320,85 365,68
+  C 405,52 430,40 462,36
+  C 494,32 514,31 542,35
+  C 568,39 598,50 632,65
+  C 664,78 692,90 730,100
+  C 762,108 792,114 832,120
+  C 864,124 884,126 912,122
+  C 940,117 968,110 1008,104
+  C 1048,99 1094,97 1145,99
+  C 1190,100 1280,100 1400,100`
+
+const bgArea = `M 0,200 L 0,100
+  C 80,99 160,98 220,95
+  C 280,92 320,85 365,68
+  C 405,52 430,40 462,36
+  C 494,32 514,31 542,35
+  C 568,39 598,50 632,65
+  C 664,78 692,90 730,100
+  C 762,108 792,114 832,120
+  C 864,124 884,126 912,122
+  C 940,117 968,110 1008,104
+  C 1048,99 1094,97 1145,99
+  C 1190,100 1280,100 1400,100 L 1400,200 Z`
+
 const infoCards = [
-    {
-        title: 'Basaltest',
-        color: '#60a5fa',
-        icon: '〰',
-        desc: 'Tester om basaldosen holder blodsukkeret stabilt uten maten i bildet. Målet er at BG ikke beveger seg mer enn ±0.5 mmol/L i løpet av 2–4 timer.',
-    },
-    {
-        title: 'ISF — Insulinsensitivitet',
-        color: '#c084fc',
-        icon: '↓',
-        desc: 'Måler hvor mye blodsukkeret synker per enhet insulin. Brukes til å beregne korreksjonsdoser ved høyt blodsukker.',
-    },
-    {
-        title: 'CR — Karbohydratforhold',
-        color: '#34d399',
-        icon: '÷',
-        desc: 'Måler hvor mange gram karbohydrat som dekkes av én enhet insulin. Brukes ved måltidsdosering.',
-    },
+    { title: 'Basaltest', color: '#60a5fa', icon: '〰', desc: 'Tester om basaldosen holder blodsukkeret stabilt uten maten i bildet. Målet er at BG ikke beveger seg mer enn ±0.5 mmol/L i løpet av 2–4 timer.' },
+    { title: 'ISF — Insulinsensitivitet', color: '#c084fc', icon: '↓', desc: 'Måler hvor mye blodsukkeret synker per enhet insulin. Brukes til å beregne korreksjonsdoser ved høyt blodsukker.' },
+    { title: 'CR — Karbohydratforhold', color: '#34d399', icon: '÷', desc: 'Måler hvor mange gram karbohydrat som dekkes av én enhet insulin. Brukes ved måltidsdosering.' },
 ]
 
 const steps = [
@@ -60,87 +97,177 @@ const steps = [
 </script>
 
 <template>
-    <div>
-        <!-- Velkomst -->
-        <div class="welcome">
-            <h2 class="welcome-title">Velkommen til BolusLab</h2>
-            <p class="welcome-desc">
-                Et verktøy for systematisk testing og optimalisering av insulininnstillinger i et lukket sløyfesystem.
-                Logg tester, analyser resultater og finn de beste innstillingene for din kropp.
-            </p>
+    <div class="home-wrap">
+
+        <!-- ─── Bakgrunn: grid + BG-kurve ─── -->
+        <div class="bg-layer" aria-hidden="true">
+            <div class="bg-grid"></div>
+            <div class="bg-curve-wrap">
+                <div class="bg-curve-scroll">
+                    <!-- To identiske SVG-er side om side for sømløs loop -->
+                    <svg v-for="n in 2" :key="n" class="bg-svg"
+                        viewBox="0 0 1400 200" preserveAspectRatio="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient :id="`bgGrad${n}`" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#34d399" stop-opacity="0.08"/>
+                                <stop offset="100%" stop-color="#34d399" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Målsone (4–8 mmol/L) -->
+                        <rect x="0" y="62" width="1400" height="76" fill="rgba(52,211,153,0.025)"/>
+                        <!-- Fylt areal under kurven -->
+                        <path :d="bgArea" :fill="`url(#bgGrad${n})`"/>
+                        <!-- BG-kurve -->
+                        <path :d="bgPath" fill="none" stroke="#34d399" stroke-width="1.5"
+                            stroke-linejoin="round" stroke-linecap="round" opacity="0.22"/>
+                    </svg>
+                </div>
+            </div>
         </div>
 
-        <!-- Statistikk -->
-        <div v-if="total > 0" class="stat-grid">
-            <div class="stat-card">
-                <div class="stat-value" style="color: #38bdf8">{{ total }}</div>
-                <div class="stat-label">Totalt antall tester</div>
-            </div>
-            <div v-for="t in TEST_TYPES" :key="t" class="stat-card">
-                <div class="stat-value" :style="{ color: typeColor(t) }">{{ byType[t] }}</div>
-                <div class="stat-label">{{ t }}-tester</div>
-            </div>
-        </div>
+        <!-- ─── Innhold ─── -->
+        <div class="home-content">
 
-        <!-- Om testtypene -->
-        <div class="section">
-            <h3 class="section-title">Testtypene</h3>
-            <div class="info-grid">
-                <div
-                    v-for="card in infoCards"
-                    :key="card.title"
-                    class="info-card"
-                    :style="{
-                        borderColor: card.color + '25',
-                        borderTopColor: card.color,
-                    }"
-                >
-                    <div class="info-card-header">
-                        <span class="info-icon" :style="{ color: card.color }">{{ card.icon }}</span>
-                        <span class="info-card-title">{{ card.title }}</span>
+            <!-- Velkomst -->
+            <div class="welcome">
+                <h2 class="welcome-title">Velkommen til BolusLab</h2>
+                <p class="welcome-desc">
+                    Et verktøy for systematisk testing og optimalisering av insulininnstillinger i et lukket sløyfesystem.
+                    Logg tester, analyser resultater og finn de beste innstillingene for din kropp.
+                </p>
+            </div>
+
+            <!-- Statistikk -->
+            <div v-if="total > 0" class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #38bdf8">{{ animatedTotal }}</div>
+                    <div class="stat-label">Totalt antall tester</div>
+                </div>
+                <div v-for="t in TEST_TYPES" :key="t" class="stat-card">
+                    <div class="stat-value" :style="{ color: typeColor(t) }">{{ animatedByType[t] }}</div>
+                    <div class="stat-label">{{ t }}-tester</div>
+                </div>
+            </div>
+
+            <!-- Om testtypene -->
+            <div class="section">
+                <h3 class="section-title">Testtypene</h3>
+                <div class="info-grid">
+                    <div
+                        v-for="card in infoCards"
+                        :key="card.title"
+                        class="info-card"
+                        :style="{ borderColor: card.color + '25', borderTopColor: card.color }"
+                    >
+                        <div class="info-card-header">
+                            <span class="info-icon" :style="{ color: card.color }">{{ card.icon }}</span>
+                            <span class="info-card-title">{{ card.title }}</span>
+                        </div>
+                        <p class="info-card-desc">{{ card.desc }}</p>
                     </div>
-                    <p class="info-card-desc">{{ card.desc }}</p>
                 </div>
             </div>
-        </div>
 
-        <!-- Siste aktivitet -->
-        <div v-if="recent.length > 0" class="section">
-            <h3 class="section-title">Siste aktivitet</h3>
-            <div class="activity-list">
-                <div
-                    v-for="e in recent"
-                    :key="e.id"
-                    class="activity-item"
-                    :style="{ borderLeftColor: (ZONES.find(z => z.id === e.zone) ?? ZONES[0]).color }"
-                >
-                    <span class="activity-date">{{ e.date }}</span>
-                    <ZoneBadge :zone="ZONES.find(z => z.id === e.zone) ?? ZONES[0]" />
-                    <span class="activity-type" :style="{ color: typeLabelColor(e.testType) }">{{ e.testType }}</span>
-                    <span
-                        v-if="deltaBG(e) !== null && e.testType !== 'ISF'"
-                        class="activity-delta"
-                        :style="{ color: deltaColor(deltaBG(e)) }"
-                    >{{ deltaBGStr(e) }}</span>
+            <!-- Siste aktivitet -->
+            <div v-if="recent.length > 0" class="section">
+                <h3 class="section-title">Siste aktivitet</h3>
+                <div class="activity-list">
+                    <div
+                        v-for="(e, i) in recent"
+                        :key="e.id"
+                        class="activity-item"
+                        :style="{
+                            borderLeftColor: (ZONES.find(z => z.id === e.zone) ?? ZONES[0]).color,
+                            animationDelay: `${i * 0.1 + 0.05}s`,
+                        }"
+                    >
+                        <span class="activity-date">{{ e.date }}</span>
+                        <ZoneBadge :zone="ZONES.find(z => z.id === e.zone) ?? ZONES[0]" />
+                        <span class="activity-type" :style="{ color: typeLabelColor(e.testType) }">{{ e.testType }}</span>
+                        <span
+                            v-if="deltaBG(e) !== null && e.testType !== 'ISF'"
+                            class="activity-delta"
+                            :style="{ color: deltaColor(deltaBG(e)) }"
+                        >{{ deltaBGStr(e) }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Kom i gang -->
-        <div v-if="total === 0" class="onboarding">
-            <h3 class="onboarding-title">Kom i gang</h3>
-            <div v-for="step in steps" :key="step.n" class="step">
-                <div class="step-number">{{ step.n }}</div>
-                <div>
-                    <div class="step-title">{{ step.t }}</div>
-                    <div class="step-desc">{{ step.d }}</div>
+            <!-- Kom i gang -->
+            <div v-if="total === 0" class="onboarding">
+                <h3 class="onboarding-title">Kom i gang</h3>
+                <div v-for="step in steps" :key="step.n" class="step">
+                    <div class="step-number">{{ step.n }}</div>
+                    <div>
+                        <div class="step-title">{{ step.t }}</div>
+                        <div class="step-desc">{{ step.d }}</div>
+                    </div>
                 </div>
             </div>
+
+            <div style="height: 40px"></div>
         </div>
     </div>
 </template>
 
 <style scoped>
+/* ─── WRAPPER ─── */
+.home-wrap {
+    position: relative;
+}
+
+.home-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* ─── BAKGRUNN ─── */
+.bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.bg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(56, 189, 248, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.045) 1px, transparent 1px);
+    background-size: 44px 44px;
+}
+
+.bg-curve-wrap {
+    position: absolute;
+    bottom: 15%;
+    left: 0;
+    right: 0;
+    height: 200px;
+    overflow: hidden;
+}
+
+/* To SVG-er side om side, animeres som én enhet */
+.bg-curve-scroll {
+    display: flex;
+    width: 200%;
+    height: 100%;
+    animation: scroll-bg 28s linear infinite;
+}
+
+.bg-svg {
+    width: 50%;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+@keyframes scroll-bg {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
 /* ─── VELKOMST ─── */
 .welcome {
     margin-bottom: 28px;
@@ -260,6 +387,13 @@ const steps = [
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+    opacity: 0;
+    animation: fade-up 0.4s ease-out forwards;
+}
+
+@keyframes fade-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .activity-date {
