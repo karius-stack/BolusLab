@@ -11,6 +11,7 @@ const form = reactive({
     date: new Date().toISOString().slice(0, 10),
     zone: settings.defaultZone,
     testType: 'Basal',
+    basalRate: '',
     startBG: '',
     endBG: '',
     duration: String(settings.defaultDuration),
@@ -29,6 +30,7 @@ function handleSubmit() {
     form.date = new Date().toISOString().slice(0, 10)
     form.zone = settings.defaultZone
     form.testType = 'Basal'
+    form.basalRate = ''
     form.startBG = ''
     form.endBG = ''
     form.duration = String(settings.defaultDuration)
@@ -68,6 +70,10 @@ const filteredEntries = computed(() => {
                             {{ zone.label }}
                         </option>
                     </select>
+                </Field>
+
+                <Field v-if="form.testType === 'Basal'" label="Basal U/t">
+                    <input v-model="form.basalRate" type="number" placeholder="1.30" step="0.01" />
                 </Field>
 
                 <Field label="Start BG:">
