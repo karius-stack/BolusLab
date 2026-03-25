@@ -26,10 +26,10 @@ const filterType =ref('all')
 
     <!-- Navigation -->
     <nav class="nav-tabs">
-      <button @click="currentView = 'home'" class="nav-btn">Hjem</button>
-      <button @click="currentView = 'log'"class="nav-btn">Logg</button>
-      <button @click="currentView = 'analyze'"class="nav-btn">Analyse</button>
-      <button @click="currentView = 'settings'"class="nav-btn">Innstillinger</button>
+      <button @click="currentView = 'home'" class="nav-btn" :class="{ active: currentView === 'home' }">Hjem</button>
+      <button @click="currentView = 'log'" class="nav-btn" :class="{ active: currentView === 'log' }">Logg</button>
+      <button @click="currentView = 'analyze'" class="nav-btn" :class="{ active: currentView === 'analyze' }">Analyse</button>
+      <button @click="currentView = 'settings'" class="nav-btn" :class="{ active: currentView === 'settings' }">Innstillinger</button>
     </nav>
   </header>
   <main class="main-content">
@@ -86,8 +86,8 @@ const filterType =ref('all')
 }
 
 .app-subtitle {
-  font-size: 10px;
-  color: var(--color-border-hover);
+  font-size: 11px;
+  color: #64748b;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 500;
@@ -103,20 +103,27 @@ const filterType =ref('all')
 }
 
 .nav-btn {
-  padding: 6px 16px;
+  padding: 7px 18px;
   border-radius: 8px;
   border: none;
   background: transparent;
   color: #64748b;
   cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;;
+  font-size: 14px;
+  font-weight: 500;
   font-family: var(--font-ui);
   transition: all var(--transition-base);
 }
 
 .nav-btn:hover {
-  transform: translateY(-2px);
+  color: #94a3b8;
+  transform: translateY(-1px);
+}
+
+.nav-btn.active {
+  background: #334155;
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
 .main-content {
