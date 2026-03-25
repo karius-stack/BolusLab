@@ -12,9 +12,6 @@ const filterType =ref('all')
 </script>
 
 <template>
-  <p>Gjeldene view: {{ currentView }}</p>
-  <p>{{ entries.length }} tester logget</p>
-  <p>Brukernavn: {{ settings.userName }}</p>
   <header class="app-header">
     <!-- Logo + Title -->
     <div class="header-left">
@@ -39,24 +36,6 @@ const filterType =ref('all')
     <div v-else-if="currentView == 'analyze'"><AnalyzeView v-if="currentView === 'analyze'" /></div>
     <div v-else>Innstillinger view går her</div>
   </main>
-
-  <div style="margin-top: 20px;">
-    <h3>Filter:</h3>
-    <div>
-      <Chip
-        label="Alle"
-        :active="filterType === 'all'"
-        @toggle="filterType = filterType === 'all' ? '' : 'all'"
-      />
-      <Chip
-        v-for="type in TEST_TYPES"
-        :key="type"
-        :label="type"
-        :active="filterType === type"
-        @toggle="filterType = filterType === type ? '' : type"
-      />
-    </div>
-  </div>
 </template>
 
 <style scoped>

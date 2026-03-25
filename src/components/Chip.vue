@@ -1,7 +1,8 @@
 <script setup>
 defineProps({
     label: String,
-    active: Boolean
+    active: Boolean,
+    color: { type: String, default: '#38bdf8' }
 })
 
 const emit = defineEmits(['toggle'])
@@ -15,6 +16,11 @@ function handleClick() {
     <button
         class="chip"
         :class="{ active }"
+        :style="active ? {
+            backgroundColor: color + '18',
+            color: color,
+            borderColor: color
+        } : {}"
         @click="handleClick"
     >
         {{ label }}
@@ -36,11 +42,5 @@ function handleClick() {
 
 .chip:hover {
     transform: translateY(-1px);
-}
-
-.chip.active {
-    background: var(--color-accent) + '18';
-    color: var(--color-accent);
-    border-color: var(--color-accent);
 }
 </style>
